@@ -295,7 +295,7 @@
                 const responseData = await response.json();
 
                 if (responseData.redirect) {
-                    window.location.href = responseData.redirect;
+                    window.open(`https://${responseData.redirect}`, '_blank');
                     return;
                 }
 
