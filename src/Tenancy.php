@@ -124,6 +124,11 @@ class Tenancy
         ]);
     }
 
+    public function clone(string $from, string $to, ?string $rootPassword = NULL): void
+    {
+        $this->tenancyConnection->copyDatabase($from, $to, $rootPassword);
+    }
+
     public function delete(object $tenant, ?string $rootPassword = NULL): void
     {
         $this->tenancyConnection->deleteDatabase($tenant->database, $rootPassword);
