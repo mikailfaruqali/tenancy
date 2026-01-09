@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void afterConnectUsing(Closure $callback)
  * @method static void afterUpgradeUsing(Closure $callback)
  * @method static void afterDeleteUsing(Closure $callback)
+ * @method static void healthUsing(Closure $callback)
  *
  * Runtime API
  * -----------
@@ -26,6 +27,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static object|null find(string $subdomain)
  * @method static object findOrFail(string $subdomain)
  * @method static bool exists(string $subdomain)
+ * @method static array health(object $tenant)
  *
  * Connection & migration
  * ----------------------

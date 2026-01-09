@@ -11,6 +11,7 @@ use Snawbar\Tenancy\Exceptions\TenancyAlreadyExists;
 use Snawbar\Tenancy\Middleware\EnsureMainTenancy;
 use Snawbar\Tenancy\Middleware\InitializeTenancy;
 use Snawbar\Tenancy\Support\TenancyConnection;
+use Snawbar\Tenancy\Support\TenancyHealth;
 use Snawbar\Tenancy\Support\TenancyRepository;
 
 class Tenancy
@@ -48,6 +49,27 @@ class Tenancy
     public static function afterDeleteUsing(Closure $callback): void
     {
         TenancyDeleteCommand::afterDeleteUsing($callback);
+    }
+
+    public static function healthUsing(Closure $callback): void
+    {
+        TenancyHealth::using($callback);
+    }
+
+    public function health(object $tenant): array
+    {
+        return TenancyHealth::check($tenant);
+    }
+
+    public function withHealth(): Collection
+    {
+        $tenants = $this->all();
+
+        foreach ($tenants as $tenant) {
+            $tenant->health = TenancyHealth::check($tenant);
+        }
+
+        return $tenants;
     }
 
     public function all(): Collection
