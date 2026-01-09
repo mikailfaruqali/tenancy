@@ -3,6 +3,9 @@
 namespace Snawbar\Tenancy;
 
 use Illuminate\Support\ServiceProvider;
+use Snawbar\Tenancy\Commands\TenancyCreateCommand;
+use Snawbar\Tenancy\Commands\TenancyDeleteCommand;
+use Snawbar\Tenancy\Commands\TenancyUpgradeCommand;
 use Snawbar\Tenancy\Support\TenancyConnection;
 use Snawbar\Tenancy\Support\TenancyRepository;
 
@@ -17,9 +20,21 @@ class TenancyServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->registerCommands();
         $this->registerRoutes();
         $this->registerViews();
         $this->publishConfig();
+    }
+
+    private function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                TenancyCreateCommand::class,
+                TenancyDeleteCommand::class,
+                TenancyUpgradeCommand::class,
+            ]);
+        }
     }
 
     private function registerRoutes(): void

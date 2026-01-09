@@ -5,9 +5,9 @@ namespace Snawbar\Tenancy;
 use Closure;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Fluent;
 use Snawbar\Tenancy\Commands\TenancyDeleteCommand;
 use Snawbar\Tenancy\Commands\TenancyUpgradeCommand;
+use Snawbar\Tenancy\Exceptions\TenancyAlreadyExists;
 use Snawbar\Tenancy\Middleware\EnsureMainTenancy;
 use Snawbar\Tenancy\Middleware\InitializeTenancy;
 use Snawbar\Tenancy\Support\TenancyConnection;
@@ -55,12 +55,12 @@ class Tenancy
         return $this->tenancyRepository->all();
     }
 
-    public function find(string $subdomain): ?Fluent
+    public function find(string $subdomain): ?object
     {
         return $this->tenancyRepository->find($subdomain);
     }
 
-    public function findOrFail(string $subdomain): Fluent
+    public function findOrFail(string $subdomain): object
     {
         return $this->tenancyRepository->findOrFail($subdomain);
     }
@@ -70,35 +70,42 @@ class Tenancy
         return $this->tenancyRepository->exists($subdomain);
     }
 
-    public function connect(string $subdomain): void
+    public function connectWithSubdomain(string $subdomain): void
     {
-        $fluent = $this->tenancyRepository->findOrFail($subdomain);
+        $tenant = $this->tenancyRepository->findOrFail($subdomain);
 
-        $this->tenancyConnection->connect($fluent->database);
+        $this->tenancyConnection->connect($tenant->database);
     }
 
-    public function migrate(Fluent $fluent, ?Command $command = NULL): void
+    public function connectWithCredentials(object $credentials): void
     {
-        $this->tenancyConnection->migrate($fluent, $command);
+        $this->tenancyConnection->connect($credentials);
     }
 
-    public function create(string $name, ?string $rootPassword = NULL): Fluent
+    public function migrate(object $tenant, ?Command $command = NULL): void
+    {
+        $this->tenancyConnection->migrate($tenant->database, $command);
+    }
+
+    public function create(string $name, ?string $rootPassword = NULL): object
     {
         $subdomain = sprintf('%s.%s', $name, config()->string('snawbar-tenancy.domain'));
 
-        $fluent = $this->tenancyConnection->createDatabase($name, $rootPassword);
+        throw_if($this->exists($subdomain), TenancyAlreadyExists::class, $subdomain);
+
+        $database = $this->tenancyConnection->createDatabase($name, $rootPassword);
 
         return $this->tenancyRepository->add([
             'subdomain' => $subdomain,
-            'database' => $fluent,
+            'database' => $database,
         ]);
     }
 
     public function delete(string $subdomain, ?string $rootPassword = NULL): void
     {
-        $fluent = $this->tenancyRepository->findOrFail($subdomain);
+        $tenant = $this->tenancyRepository->findOrFail($subdomain);
 
-        $this->tenancyConnection->deleteDatabase($fluent, $rootPassword);
+        $this->tenancyConnection->deleteDatabase($tenant->database, $rootPassword);
         $this->tenancyRepository->remove($subdomain);
     }
 }

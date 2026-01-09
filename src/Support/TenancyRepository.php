@@ -4,7 +4,6 @@ namespace Snawbar\Tenancy\Support;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Fluent;
 use Snawbar\Tenancy\Exceptions\TenancyNotFound;
 
 class TenancyRepository
@@ -24,12 +23,12 @@ class TenancyRepository
         return $this->tenants;
     }
 
-    public function find(string $subdomain): ?Fluent
+    public function find(string $subdomain): ?object
     {
         return $this->tenants->firstWhere('subdomain', $subdomain);
     }
 
-    public function findOrFail(string $subdomain): Fluent
+    public function findOrFail(string $subdomain): object
     {
         return $this->find($subdomain) ?? throw new TenancyNotFound($subdomain);
     }
@@ -39,14 +38,14 @@ class TenancyRepository
         return (bool) $this->find($subdomain);
     }
 
-    public function add(array $config): Fluent
+    public function add(array $config): object
     {
-        $fluent = fluent($config);
+        $config = (object) $config;
 
-        $this->tenants->push($fluent);
+        $this->tenants->push($config);
         $this->save();
 
-        return $fluent;
+        return $config;
     }
 
     public function remove(string $subdomain): void
@@ -62,14 +61,17 @@ class TenancyRepository
 
     private function load(): Collection
     {
-        return collect(File::json($this->path, []))->map(fn ($tenant) => fluent($tenant));
+        return collect(json_decode(
+            json: File::get($this->path),
+            associative: FALSE,
+        ));
     }
 
     private function save(): void
     {
         File::put(
             path: $this->path,
-            contents: $this->tenants->toJson(JSON_PRETTY_PRINT),
+            contents: $this->tenants->values()->toJson(JSON_PRETTY_PRINT),
             lock: TRUE
         );
     }

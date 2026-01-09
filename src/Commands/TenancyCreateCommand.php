@@ -24,10 +24,10 @@ class TenancyCreateCommand extends Command
             label: 'MySQL Root Password?',
         );
 
-        $fluent = Tenancy::create($tenantName, $mysqlRootPassword);
+        $tenant = Tenancy::create($tenantName, $mysqlRootPassword);
 
-        Tenancy::migrate($fluent->database, $this);
+        Tenancy::migrate($tenant, $this);
 
-        $this->components->info(sprintf('Tenant created: %s', $fluent->subdomain));
+        $this->components->info(sprintf('Tenant created: %s', $tenant->subdomain));
     }
 }

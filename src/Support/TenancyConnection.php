@@ -6,7 +6,6 @@ use Closure;
 use Illuminate\Console\Command;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Fluent;
 use Snawbar\Tenancy\Exceptions\TenancyDatabaseException;
 use Throwable;
 
@@ -26,14 +25,14 @@ class TenancyConnection
         self::$migrateUsing = $callback;
     }
 
-    public function connect($credentials): Connection
+    public function connect($credentials): void
     {
         throw_if(blank(self::$connectUsing), TenancyDatabaseException::class, 'No connection handler registered. Use TenancyConnection::connectUsing()');
 
-        return (self::$connectUsing)($credentials);
+        (self::$connectUsing)($credentials);
     }
 
-    public function createDatabase(string $name, ?string $rootPassword = NULL): Fluent
+    public function createDatabase(string $name, ?string $rootPassword = NULL): object
     {
         $databaseName = $this->sanitizeDatabaseName($name);
         $user = sprintf('%s_usr', $databaseName);
@@ -53,31 +52,33 @@ class TenancyConnection
             throw new TenancyDatabaseException(sprintf('Failed to create database: %s', $throwable->getMessage()), previous: $throwable);
         }
 
-        return fluent([
+        return (object) [
             'database' => $databaseName,
             'username' => $user,
             'password' => $password,
-        ]);
+        ];
     }
 
-    public function deleteDatabase(Fluent $fluent, ?string $rootPassword = NULL): void
+    public function deleteDatabase(object $credentials, ?string $rootPassword = NULL): void
     {
         $connection = $this->rootConnection($rootPassword);
 
         try {
-            $connection->statement(sprintf('DROP DATABASE IF EXISTS `%s`', $fluent->database->database));
-            $connection->statement(sprintf("DROP USER IF EXISTS '%s'@'localhost'", $fluent->database->username));
+            $connection->statement(sprintf('DROP DATABASE IF EXISTS `%s`', $credentials->database));
+            $connection->statement(sprintf("DROP USER IF EXISTS '%s'@'localhost'", $credentials->username));
             $connection->statement('FLUSH PRIVILEGES');
         } catch (Throwable $throwable) {
             throw new TenancyDatabaseException(sprintf('Failed to delete database: %s', $throwable->getMessage()), previous: $throwable);
         }
     }
 
-    public function migrate(Fluent $fluent, ?Command $command = NULL): void
+    public function migrate(object $credentials, ?Command $command = NULL): void
     {
         throw_if(blank(self::$migrateUsing), TenancyDatabaseException::class, 'No migration handler registered. Use TenancyConnection::migrateUsing()');
 
-        (self::$migrateUsing)($fluent, $command);
+        $this->connect($credentials);
+
+        (self::$migrateUsing)($command);
     }
 
     private function rootConnection(?string $password = NULL): Connection
@@ -88,6 +89,7 @@ class TenancyConnection
             'driver' => $config['driver'],
             'host' => $config['host'],
             'port' => $config['port'],
+            'database' => 'mysql',
             'username' => $config['username'],
             'password' => $password ?? $config['password'],
         ]);

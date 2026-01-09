@@ -6,18 +6,18 @@ use Closure;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Facade;
-use Illuminate\Support\Fluent;
 
 /**
  * @method static void connectUsing(Closure $callback)
  * @method static void migrateUsing(Closure $callback)
  * @method static Collection all()
- * @method static Fluent|null find(string $subdomain)
- * @method static Fluent findOrFail(string $subdomain)
+ * @method static object|null find(string $subdomain)
+ * @method static object findOrFail(string $subdomain)
  * @method static bool exists(string $subdomain)
- * @method static void connect($credentials)
- * @method static void migrate(Fluent $credentials, ?Command $command = null)
- * @method static Fluent create(string $name, string $subdomain, ?string $rootPassword = null)
+ * @method static void connectWithSubdomain(string $subdomain)
+ * @method static void connectWithCredentials(object $credentials)
+ * @method static void migrate(object $credentials, ?Command $command = null)
+ * @method static object create(string $name, string $subdomain, ?string $rootPassword = null)
  * @method static void delete(string $subdomain, ?string $rootPassword = null)
  */
 class Tenancy extends Facade

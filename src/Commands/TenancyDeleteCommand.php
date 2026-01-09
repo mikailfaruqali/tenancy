@@ -24,11 +24,11 @@ class TenancyDeleteCommand extends Command
     {
         $subdomain = search(
             label: 'Select Tenant',
-            options: fn (string $query) => Tenancy::all()
-                ->filter(fn ($tenant) => str_contains((string) $tenant->subdomain, $query))
-                ->pluck('subdomain', 'subdomain')
+            options: fn (?string $query) => Tenancy::all()
+                ->when($query, fn ($tenants) => $tenants->filter(fn ($tenant) => str_contains((string) $tenant->subdomain, (string) $query)))
+                ->pluck('subdomain')
                 ->toArray(),
-            required: TRUE,
+            validate: fn (?string $value) => when(blank($value), 'Please select a tenant'),
         );
 
         $mysqlRootPassword = password(
