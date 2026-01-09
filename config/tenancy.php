@@ -100,6 +100,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | MySQL Binary Paths
+    |--------------------------------------------------------------------------
+    |
+    | Paths to MySQL binaries used for database cloning operations.
+    | On Linux servers, defaults usually work. On Windows (Laragon, XAMPP, Herd),
+    | you may need to specify full paths.
+    |
+    | Example for Herd on Windows:
+    |   MYSQL_DUMP_PATH="C:\Users\user\.config\herd\bin\services\mysql\8.4.2\bin\mysqldump.exe"
+    |   MYSQL_PATH="C:\Users\user\.config\herd\bin\services\mysql\8.4.2\bin\mysql.exe"
+    |
+    */
+
+    'mysql_dump_path' => env('MYSQL_DUMP_PATH', 'mysqldump'),
+    'mysql_path' => env('MYSQL_PATH', 'mysql'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Health Check Sort Options
     |--------------------------------------------------------------------------
     |

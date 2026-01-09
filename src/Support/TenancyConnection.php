@@ -6,7 +6,10 @@ use Closure;
 use Illuminate\Console\Command;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Process;
+use Snawbar\Tenancy\Exceptions\DatabaseCopyFailed;
 use Snawbar\Tenancy\Exceptions\TenancyDatabaseException;
+use Snawbar\Tenancy\Facades\Tenancy;
 use Throwable;
 
 class TenancyConnection
@@ -58,6 +61,32 @@ class TenancyConnection
             'username' => $user,
             'password' => $password,
         ];
+    }
+
+    public function copyDatabase(string $from, string $to, ?string $rootPassword = NULL): void
+    {
+        $fromTenant = Tenancy::firstOrFail($from);
+        $toTenant = Tenancy::firstOrFail($to);
+
+        $config = config()->array('snawbar-tenancy.database');
+        $mysqldump = config()->string('snawbar-tenancy.mysql_dump_path');
+        $mysql = config()->string('snawbar-tenancy.mysql_path');
+
+        $credentials = [
+            $config['host'],
+            $config['port'],
+            $config['username'],
+            $rootPassword,
+        ];
+
+        $dumpCmd = sprintf('"%s" -h%s -P%s -u%s -p%s --single-transaction --quick %s', $mysqldump, ...$credentials, $fromTenant->database->database);
+        $importCmd = sprintf('"%s" -h%s -P%s -u%s -p%s %s', $mysql, ...$credentials, $toTenant->database->database);
+
+        $processResult = Process::pipe([$dumpCmd, $importCmd]);
+
+        if ($processResult->failed()) {
+            throw new DatabaseCopyFailed($from, $to, $processResult->errorOutput());
+        }
     }
 
     public function deleteDatabase(object $credentials, ?string $rootPassword = NULL): void

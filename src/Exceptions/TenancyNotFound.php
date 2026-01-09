@@ -3,6 +3,7 @@
 namespace Snawbar\Tenancy\Exceptions;
 
 use Exception;
+use Illuminate\Http\Request;
 
 class TenancyNotFound extends Exception
 {
@@ -10,10 +11,16 @@ class TenancyNotFound extends Exception
         public readonly string $subdomain
     ) {}
 
-    public function render()
+    public function render(Request $request)
     {
-        return view('snawbar-tenancy::404', [
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => sprintf('Tenant %s not found', $this->subdomain),
+            ], 404);
+        }
+
+        return response()->view('snawbar-tenancy::404', [
             'subdomain' => $this->subdomain,
-        ]);
+        ], 404);
     }
 }
