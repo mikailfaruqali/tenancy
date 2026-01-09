@@ -34,6 +34,7 @@ class TenancyConnection
 
     public function createDatabase(string $name, ?string $rootPassword = NULL): object
     {
+        $databaseOwner = config()->string('snawbar-tenancy.main_domain_owner');
         $databaseName = $this->sanitizeDatabaseName($name);
         $user = sprintf('%s_usr', $databaseName);
         $password = str()->random(16);
@@ -45,7 +46,7 @@ class TenancyConnection
             $connection->statement(sprintf("CREATE USER IF NOT EXISTS '%s'@'localhost' IDENTIFIED BY '%s'", $user, $password));
             $connection->statement(sprintf("ALTER USER '%s'@'localhost' IDENTIFIED BY '%s'", $user, $password));
             $connection->statement(sprintf("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'localhost'", $databaseName, $user));
-            $connection->statement(sprintf("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'localhost'", $databaseName, config('snawbar-tenancy.main_domain_owner')));
+            $connection->statement(sprintf("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'localhost'", $databaseName, $databaseOwner));
             $connection->statement('FLUSH PRIVILEGES');
         } catch (Throwable $throwable) {
             $this->rollbackDatabase($connection, $databaseName, $user);

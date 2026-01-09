@@ -6,11 +6,14 @@ use Exception;
 
 class TenancyNotFound extends Exception
 {
+    public function __construct(
+        public readonly string $subdomain
+    ) {}
+
     public function render()
     {
-        return view('errors.custom.unknown', [
-            'message' => __('errors.nadozrayawa'),
-            'code' => 404,
+        return view('snawbar-tenancy::404', [
+            'subdomain' => $this->subdomain,
         ]);
     }
 }

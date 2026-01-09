@@ -8,16 +8,34 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Facade;
 
 /**
+ * Tenancy Facade
+ *
+ * Configuration hooks
+ * -------------------
+ *
  * @method static void connectUsing(Closure $callback)
  * @method static void migrateUsing(Closure $callback)
+ * @method static void ensureMainTenantUsing(Closure $callback)
+ * @method static void afterConnectUsing(Closure $callback)
+ * @method static void afterUpgradeUsing(Closure $callback)
+ * @method static void afterDeleteUsing(Closure $callback)
+ *
+ * Runtime API
+ * -----------
  * @method static Collection all()
  * @method static object|null find(string $subdomain)
  * @method static object findOrFail(string $subdomain)
  * @method static bool exists(string $subdomain)
+ *
+ * Connection & migration
+ * ----------------------
  * @method static void connectWithSubdomain(string $subdomain)
  * @method static void connectWithCredentials(object $credentials)
- * @method static void migrate(object $credentials, ?Command $command = null)
- * @method static object create(string $name, string $subdomain, ?string $rootPassword = null)
+ * @method static void migrate(object $tenant, ?Command $command = null)
+ *
+ * Tenant lifecycle
+ * ----------------
+ * @method static object create(string $name, ?string $rootPassword = null)
  * @method static void delete(string $subdomain, ?string $rootPassword = null)
  */
 class Tenancy extends Facade

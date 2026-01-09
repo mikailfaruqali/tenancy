@@ -18,7 +18,7 @@ class InitializeTenancy
     public function handle(Request $request, Closure $next)
     {
         if (config()->boolean('snawbar-tenancy.enabled')) {
-            Tenancy::connect($request->getHost());
+            Tenancy::connectWithSubdomain($request->getHost());
         }
 
         if (self::$afterConnectUsing instanceof Closure) {
