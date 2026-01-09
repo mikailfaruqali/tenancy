@@ -72,11 +72,18 @@ class TenancyConnection
         $mysqldump = config()->string('snawbar-tenancy.mysql_dump_path');
         $mysql = config()->string('snawbar-tenancy.mysql_path');
 
+        $password = $rootPassword ?? $config['password'];
+
+        $passwordFlag = match ($password) {
+            NULL, '' => '',
+            default => sprintf('-p%s', $password),
+        };
+
         $credentials = [
             $config['host'],
             $config['port'],
             $config['username'],
-            $rootPassword,
+            $passwordFlag,
         ];
 
         $dumpCmd = sprintf('"%s" -h%s -P%s -u%s -p%s --single-transaction --quick %s', $mysqldump, ...$credentials, $fromTenant->database->database);
