@@ -286,7 +286,7 @@
                                 <div class="health-badges">
                                     @foreach ($tenant->health as $key => $value)
                                         <span class="badge">{{ $key }} <span
-                                                class="badge-value">{{ number_format($value) }}</span></span>
+                                                class="badge-value">{{ $value }}</span></span>
                                     @endforeach
                                 </div>
                             @endif
