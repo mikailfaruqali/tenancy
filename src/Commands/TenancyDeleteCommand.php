@@ -13,22 +13,22 @@ class TenancyDeleteCommand extends Command
 {
     protected $signature = 'tenancy:delete';
 
-        private static ?Closure $afterDeleteUsing = null;
+    private static ?Closure $afterDeleteUsing = NULL;
 
     public static function afterDeleteUsing(Closure $callback): void
     {
-        static::$afterDeleteUsing = $callback;
+        self::$afterDeleteUsing = $callback;
     }
 
     public function handle(): void
     {
         $subdomain = search(
             label: 'Select Tenant',
-            options: fn(string $query) => Tenancy::all()
-                ->filter(fn($tenant) => str_contains($tenant->subdomain, $query))
+            options: fn (string $query) => Tenancy::all()
+                ->filter(fn ($tenant) => str_contains((string) $tenant->subdomain, $query))
                 ->pluck('subdomain', 'subdomain')
                 ->toArray(),
-            required: true,
+            required: TRUE,
         );
 
         $mysqlRootPassword = password(
@@ -37,8 +37,8 @@ class TenancyDeleteCommand extends Command
 
         Tenancy::delete($subdomain, $mysqlRootPassword);
 
-        if (static::$afterDeleteUsing) {
-            (static::$afterDeleteUsing)($subdomain, $this);
+        if (self::$afterDeleteUsing instanceof Closure) {
+            (self::$afterDeleteUsing)($subdomain, $this);
         }
 
         $this->components->info(sprintf('Tenant deleted: %s', $subdomain));

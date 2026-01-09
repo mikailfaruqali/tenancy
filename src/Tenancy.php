@@ -40,6 +40,16 @@ class Tenancy
         InitializeTenancy::afterConnectUsing($callback);
     }
 
+    public static function afterUpgradeUsing(Closure $callback): void
+    {
+        TenancyUpgradeCommand::afterUpgradeUsing($callback);
+    }
+
+    public static function afterDeleteUsing(Closure $callback): void
+    {
+        TenancyDeleteCommand::afterDeleteUsing($callback);
+    }
+
     public function all(): Collection
     {
         return $this->tenancyRepository->all();
@@ -62,9 +72,9 @@ class Tenancy
 
     public function connect(string $subdomain): void
     {
-        $tenant = $this->tenancyRepository->findOrFail($subdomain);
+        $fluent = $this->tenancyRepository->findOrFail($subdomain);
 
-        $this->tenancyConnection->connect($tenant->database);
+        $this->tenancyConnection->connect($fluent->database);
     }
 
     public function migrate(Fluent $fluent, ?Command $command = NULL): void
@@ -76,29 +86,19 @@ class Tenancy
     {
         $subdomain = sprintf('%s.%s', $name, config()->string('snawbar-tenancy.domain'));
 
-        $credentials = $this->tenancyConnection->createDatabase($name, $rootPassword);
+        $fluent = $this->tenancyConnection->createDatabase($name, $rootPassword);
 
         return $this->tenancyRepository->add([
             'subdomain' => $subdomain,
-            'database' => $credentials,
+            'database' => $fluent,
         ]);
     }
 
     public function delete(string $subdomain, ?string $rootPassword = NULL): void
     {
-        $tenant = $this->tenancyRepository->findOrFail($subdomain);
+        $fluent = $this->tenancyRepository->findOrFail($subdomain);
 
-        $this->tenancyConnection->deleteDatabase($tenant, $rootPassword);
+        $this->tenancyConnection->deleteDatabase($fluent, $rootPassword);
         $this->tenancyRepository->remove($subdomain);
-    }
-
-    public static function afterUpgradeUsing(Closure $callback): void
-    {
-        TenancyUpgradeCommand::afterUpgradeUsing($callback);
-    }
-
-    public static function afterDeleteUsing(Closure $callback): void
-    {
-        TenancyDeleteCommand::afterDeleteUsing($callback);
     }
 }

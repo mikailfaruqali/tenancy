@@ -16,7 +16,7 @@ class TenancyCreateCommand extends Command
     {
         $tenantName = text(
             label: 'Tenant Name?',
-            required: true,
+            required: TRUE,
             validate: ['name' => 'required|regex:/^[a-z0-9-]+$/'],
         );
 
@@ -24,10 +24,10 @@ class TenancyCreateCommand extends Command
             label: 'MySQL Root Password?',
         );
 
-        $tenant = Tenancy::create($tenantName, $mysqlRootPassword);
+        $fluent = Tenancy::create($tenantName, $mysqlRootPassword);
 
-        Tenancy::migrate($tenant->database, $this);
+        Tenancy::migrate($fluent->database, $this);
 
-        $this->components->info(sprintf('Tenant created: %s', $tenant->subdomain));
+        $this->components->info(sprintf('Tenant created: %s', $fluent->subdomain));
     }
 }

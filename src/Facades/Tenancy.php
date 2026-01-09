@@ -3,10 +3,10 @@
 namespace Snawbar\Tenancy\Facades;
 
 use Closure;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Fluent;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Facade;
+use Illuminate\Support\Fluent;
 
 /**
  * @method static void connectUsing(Closure $callback)

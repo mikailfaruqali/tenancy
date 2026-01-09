@@ -13,11 +13,11 @@ class TenancyUpgradeCommand extends Command
 {
     protected $signature = 'tenancy:upgrade';
 
-    private static ?Closure $afterUpgradeUsing = null;
+    private static ?Closure $afterUpgradeUsing = NULL;
 
     public static function afterUpgradeUsing(Closure $callback): void
     {
-        static::$afterUpgradeUsing = $callback;
+        self::$afterUpgradeUsing = $callback;
     }
 
     public function handle(): void
@@ -33,21 +33,21 @@ class TenancyUpgradeCommand extends Command
         $this->components->info('All tenants upgraded');
     }
 
-    private function upgradeTenant(Fluent $tenant): void
+    private function upgradeTenant(Fluent $fluent): void
     {
-        Tenancy::connect($tenant->subdomain);
+        Tenancy::connect($fluent->subdomain);
 
-        $this->components->info(sprintf('Upgrading tenant: %s', $tenant->subdomain));
+        $this->components->info(sprintf('Upgrading tenant: %s', $fluent->subdomain));
 
         if (File::exists($this->upgradeSqlPath())) {
             DB::unprepared(File::get($this->upgradeSqlPath()));
         }
 
-        if (static::$afterUpgradeUsing) {
-            (static::$afterUpgradeUsing)($tenant, $this);
+        if (self::$afterUpgradeUsing instanceof Closure) {
+            (self::$afterUpgradeUsing)($fluent, $this);
         }
 
-        $this->components->info(sprintf('Tenant upgraded: %s', $tenant->subdomain));
+        $this->components->info(sprintf('Tenant upgraded: %s', $fluent->subdomain));
     }
 
     private function upgradeSqlPath(): string

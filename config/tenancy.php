@@ -12,7 +12,7 @@ return [
     |
     */
 
-    'enabled' => env('TENANCY_ENABLED', false),
+    'enabled' => env('TENANCY_ENABLED', FALSE),
 
     /*
     |--------------------------------------------------------------------------
