@@ -63,10 +63,10 @@ class TenancyConnection
         ];
     }
 
-    public function copyDatabase(string $from, string $to, ?string $rootPassword = NULL): void
+    public function copyDatabase(string $sourceTenant, string $targetTenant, ?string $rootPassword = NULL): void
     {
-        $fromTenant = Tenancy::firstOrFail($from);
-        $toTenant = Tenancy::firstOrFail($to);
+        $fromTenant = Tenancy::findOrFail($sourceTenant);
+        $toTenant = Tenancy::findOrFail($targetTenant);
 
         $config = config()->array('snawbar-tenancy.database');
         $mysqldump = config()->string('snawbar-tenancy.mysql_dump_path');
@@ -79,20 +79,31 @@ class TenancyConnection
             default => sprintf('-p%s', $password),
         };
 
-        $credentials = [
+        $dumpArguments = [
+            $mysqldump,
             $config['host'],
             $config['port'],
             $config['username'],
             $passwordFlag,
+            $fromTenant->database->database,
         ];
 
-        $dumpCmd = sprintf('"%s" -h%s -P%s -u%s -p%s --single-transaction --quick %s', $mysqldump, ...$credentials, $fromTenant->database->database);
-        $importCmd = sprintf('"%s" -h%s -P%s -u%s -p%s %s', $mysql, ...$credentials, $toTenant->database->database);
+        $importArguments = [
+            $mysql,
+            $config['host'],
+            $config['port'],
+            $config['username'],
+            $passwordFlag,
+            $toTenant->database->database,
+        ];
 
-        $processResult = Process::pipe([$dumpCmd, $importCmd]);
+        $dumpCommand = sprintf('"%s" -h%s -P%s -u%s %s --single-transaction --quick %s', ...$dumpArguments);
+        $importCommand = sprintf('"%s" -h%s -P%s -u%s %s %s', ...$importArguments);
+
+        $processResult = Process::pipe([$dumpCommand, $importCommand]);
 
         if ($processResult->failed()) {
-            throw new DatabaseCopyFailed($from, $to, $processResult->errorOutput());
+            throw new DatabaseCopyFailed($sourceTenant, $targetTenant, $processResult->errorOutput());
         }
     }
 
