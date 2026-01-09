@@ -38,7 +38,7 @@ use Illuminate\Support\Facades\Facade;
  * Tenant lifecycle
  * ----------------
  * @method static object create(string $name, ?string $rootPassword = null)
- * @method static void delete(string $subdomain, ?string $rootPassword = null)
+ * @method static void delete(object $tenant, ?string $rootPassword = null)
  */
 class Tenancy extends Facade
 {

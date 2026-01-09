@@ -22,9 +22,11 @@ class TenancyDeleteCommand extends Command
 
     public function handle(): void
     {
+        $tenants = Tenancy::all();
+
         $subdomain = search(
             label: 'Select Tenant',
-            options: fn (?string $query) => Tenancy::all()
+            options: fn (?string $query) => $tenants
                 ->when($query, fn ($tenants) => $tenants->filter(fn ($tenant) => str_contains((string) $tenant->subdomain, (string) $query)))
                 ->pluck('subdomain')
                 ->toArray(),
@@ -36,7 +38,9 @@ class TenancyDeleteCommand extends Command
             required: TRUE,
         );
 
-        Tenancy::delete($subdomain, $rootPassword);
+        $selectedTenant = $tenants->firstWhere('subdomain', $subdomain);
+
+        Tenancy::delete($selectedTenant, $rootPassword);
 
         if (self::$afterDeleteUsing instanceof Closure) {
             (self::$afterDeleteUsing)($subdomain, $this);

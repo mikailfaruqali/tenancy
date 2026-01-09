@@ -124,11 +124,9 @@ class Tenancy
         ]);
     }
 
-    public function delete(string $subdomain, ?string $rootPassword = NULL): void
+    public function delete(object $tenant, ?string $rootPassword = NULL): void
     {
-        $tenant = $this->tenancyRepository->findOrFail($subdomain);
-
         $this->tenancyConnection->deleteDatabase($tenant->database, $rootPassword);
-        $this->tenancyRepository->remove($subdomain);
+        $this->tenancyRepository->remove($tenant->subdomain);
     }
 }
