@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Workspaces</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
     <style>
         * {
@@ -44,14 +44,27 @@
             z-index: 1;
             max-width: 700px;
             margin: 0 auto;
+            padding-bottom: 4rem;
+        }
+
+        .header {
+            display: flex;
+            align-items: baseline;
+            gap: 0.625rem;
+            margin-bottom: 1.5rem;
         }
 
         h1 {
-            font-size: 1.75rem;
-            font-weight: 800;
+            font-size: 1.375rem;
+            font-weight: 700;
             color: #0f172a;
-            margin-bottom: 1.5rem;
-            letter-spacing: -0.04em;
+            letter-spacing: -0.03em;
+        }
+
+        .tenant-count {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: #94a3b8;
         }
 
         .toolbar {
@@ -70,7 +83,7 @@
         .search-input {
             flex: 1;
             padding: 0.75rem 1rem;
-            font-size: 0.875rem;
+            font-size: 1rem;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
             background: white;
@@ -90,7 +103,7 @@
 
         .sort-select {
             padding: 0.75rem 1rem;
-            font-size: 0.875rem;
+            font-size: 1rem;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
             background: white;
@@ -225,6 +238,12 @@
             pointer-events: none;
         }
 
+        .pagination-dots {
+            color: #94a3b8;
+            padding: 0.5rem 0.25rem;
+            font-size: 0.875rem;
+        }
+
         .empty-state {
             color: #64748b;
             font-size: 0.9375rem;
@@ -241,7 +260,10 @@
     <div class="background"></div>
 
     <div class="container">
-        <h1>Workspaces</h1>
+        <div class="header">
+            <h1>Workspaces</h1>
+            <span class="tenant-count">({{ $tenants->total() }})</span>
+        </div>
 
         <form class="toolbar" method="GET" action="{{ route('tenancy.list.view') }}">
             <input type="text" name="search" class="search-input" placeholder="Search workspaces..."
@@ -284,10 +306,28 @@
                             class="pagination-link">Prev</a>
                     @endif
 
-                    @foreach ($tenants->getUrlRange(1, $tenants->lastPage()) as $page => $url)
-                        <a href="{{ $tenants->appends(request()->query())->url($page) }}"
-                            class="pagination-link {{ when($page == $tenants->currentPage(), 'active') }}">{{ $page }}</a>
-                    @endforeach
+                    @if ($tenants->lastPage() <= 7)
+                        @foreach ($tenants->getUrlRange(1, $tenants->lastPage()) as $page => $url)
+                            <a href="{{ $tenants->appends(request()->query())->url($page) }}"
+                                class="pagination-link {{ when($page == $tenants->currentPage(), 'active') }}">{{ $page }}</a>
+                        @endforeach
+                    @else
+                        @if ($tenants->currentPage() > 3)
+                            <a href="{{ $tenants->appends(request()->query())->url(1) }}" class="pagination-link">1</a>
+                            <span class="pagination-dots">...</span>
+                        @endif
+
+                        @foreach (range(max(1, $tenants->currentPage() - 1), min($tenants->lastPage(), $tenants->currentPage() + 1)) as $page)
+                            <a href="{{ $tenants->appends(request()->query())->url($page) }}"
+                                class="pagination-link {{ when($page == $tenants->currentPage(), 'active') }}">{{ $page }}</a>
+                        @endforeach
+
+                        @if ($tenants->currentPage() < $tenants->lastPage() - 2)
+                            <span class="pagination-dots">...</span>
+                            <a href="{{ $tenants->appends(request()->query())->url($tenants->lastPage()) }}"
+                                class="pagination-link">{{ $tenants->lastPage() }}</a>
+                        @endif
+                    @endif
 
                     @if ($tenants->hasMorePages())
                         <a href="{{ $tenants->appends(request()->query())->nextPageUrl() }}"

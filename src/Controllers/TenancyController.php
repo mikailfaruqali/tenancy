@@ -78,7 +78,9 @@ class TenancyController extends Controller
             total: $collection->count(),
             perPage: $perPage,
             currentPage: $page,
-            options: ['path' => $request->url()],
+            options: [
+                'path' => $request->url(),
+            ],
         );
     }
 }

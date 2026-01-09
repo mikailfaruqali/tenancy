@@ -6,18 +6,9 @@ use Illuminate\Support\ServiceProvider;
 use Snawbar\Tenancy\Commands\TenancyCreateCommand;
 use Snawbar\Tenancy\Commands\TenancyDeleteCommand;
 use Snawbar\Tenancy\Commands\TenancyUpgradeCommand;
-use Snawbar\Tenancy\Support\TenancyConnection;
-use Snawbar\Tenancy\Support\TenancyRepository;
 
 class TenancyServiceProvider extends ServiceProvider
 {
-    public function register(): void
-    {
-        $this->app->singleton(TenancyRepository::class);
-        $this->app->singleton(TenancyConnection::class);
-        $this->app->singleton(Tenancy::class);
-    }
-
     public function boot(): void
     {
         $this->registerCommands();

@@ -18,7 +18,8 @@ class Tenancy
 {
     public function __construct(
         private readonly TenancyRepository $tenancyRepository,
-        private readonly TenancyConnection $tenancyConnection
+        private readonly TenancyConnection $tenancyConnection,
+        private readonly TenancyHealth $tenancyHealth,
     ) {}
 
     public static function connectUsing(Closure $callback): void
@@ -58,7 +59,7 @@ class Tenancy
 
     public function health(object $tenant): array
     {
-        return TenancyHealth::check($tenant);
+        return $this->tenancyHealth->check($tenant);
     }
 
     public function withHealth(): Collection
@@ -66,7 +67,7 @@ class Tenancy
         $tenants = $this->all();
 
         foreach ($tenants as $tenant) {
-            $tenant->health = TenancyHealth::check($tenant);
+            $tenant->health = $this->tenancyHealth->check($tenant);
         }
 
         return $tenants;
