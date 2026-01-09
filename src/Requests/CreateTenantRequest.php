@@ -20,10 +20,10 @@ class CreateTenantRequest extends FormRequest
                 'max:63',
                 'regex:/^[a-z0-9][a-z0-9-]*[a-z0-9]$/',
             ],
-            // 'password' => [
-            //     'required',
-            //     'string',
-            // ],
+            'password' => [
+                'required',
+                'string',
+            ],
         ];
     }
 

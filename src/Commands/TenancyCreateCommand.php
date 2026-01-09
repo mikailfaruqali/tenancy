@@ -20,11 +20,12 @@ class TenancyCreateCommand extends Command
             validate: ['name' => 'required|regex:/^[a-z0-9-]+$/'],
         );
 
-        $mysqlRootPassword = password(
+        $rootPassword = password(
             label: 'MySQL Root Password?',
+            required: TRUE,
         );
 
-        $tenant = Tenancy::create($tenantName, $mysqlRootPassword);
+        $tenant = Tenancy::create($tenantName, $rootPassword);
 
         Tenancy::migrate($tenant, $this);
 

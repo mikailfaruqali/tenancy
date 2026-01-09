@@ -31,11 +31,12 @@ class TenancyDeleteCommand extends Command
             validate: fn (?string $value) => when(blank($value), 'Please select a tenant'),
         );
 
-        $mysqlRootPassword = password(
+        $rootPassword = password(
             label: 'MySQL Root Password?',
+            required: TRUE,
         );
 
-        Tenancy::delete($subdomain, $mysqlRootPassword);
+        Tenancy::delete($subdomain, $rootPassword);
 
         if (self::$afterDeleteUsing instanceof Closure) {
             (self::$afterDeleteUsing)($subdomain, $this);
