@@ -270,8 +270,9 @@
                 value="{{ request('search') }}">
 
             <select name="sort" class="sort-select" onchange="this.form.submit()">
-                @foreach(config()->array('snawbar-tenancy.health_sort_options') as $key => $label)
-                    <option value="{{ $key }}" {{ when(request('sort') === $key, 'selected') }}>{{ $label }}</option>
+                @foreach (config()->array('snawbar-tenancy.health_sort_options') as $key => $label)
+                    <option value="{{ $key }}" {{ when(request('sort') === $key, 'selected') }}>
+                        {{ $label }}</option>
                 @endforeach
             </select>
         </form>
@@ -286,8 +287,10 @@
                             @if (filled($tenant->health))
                                 <div class="health-badges">
                                     @foreach ($tenant->health as $key => $value)
-                                        <span class="badge">{{ $key }} <span
-                                                class="badge-value">{{ $value }}</span></span>
+                                        <span class="badge">
+                                            {{ $key }}
+                                            <span class="badge-value">{{ formatHealthValue($value) }}</span>
+                                        </span>
                                     @endforeach
                                 </div>
                             @endif
