@@ -1,0 +1,51 @@
+{
+    "name": "mikailfaruqali/tenancy",
+    "description": "Fast file-based multi-tenancy package for Laravel with subdomain-based tenant identification, automatic database isolation, dynamic connection switching, and seamless tenant management interface.",
+    "keywords": [
+        "laravel",
+        "multi-tenancy",
+        "saas",
+        "tenant",
+        "database-per-tenant",
+        "subdomain",
+        "tenancy",
+        "multi-tenant",
+        "snawbar"
+    ],
+    "homepage": "https://github.com/mikailfaruqali/tenancy",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Snawbar",
+            "email": "alanfaruq85@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0",
+        "illuminate/database": "^11.0",
+        "illuminate/console": "^11.0",
+        "illuminate/contracts": "^11.0",
+        "illuminate/http": "^11.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.14",
+        "orchestra/testbench": "^8.22 || ^9.0",
+        "driftingly/rector-laravel": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Snawbar\\Tenancy\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Snawbar\\Tenancy\\TenancyServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
