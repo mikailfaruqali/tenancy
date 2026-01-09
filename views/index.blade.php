@@ -270,8 +270,9 @@
                 value="{{ request('search') }}">
 
             <select name="sort" class="sort-select" onchange="this.form.submit()">
-                <option value="name" {{ when(request('sort') === 'name', 'selected') }}>Name</option>
-                <option value="usage" {{ when(request('sort') === 'usage', 'selected') }}>Most Used</option>
+                @foreach(config()->array('snawbar-tenancy.health_sort_options') as $key => $label)
+                    <option value="{{ $key }}" {{ when(request('sort') === $key, 'selected') }}>{{ $label }}</option>
+                @endforeach
             </select>
         </form>
 

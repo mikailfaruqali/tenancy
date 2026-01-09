@@ -17,7 +17,7 @@ class TenancyController extends Controller
         $tenants = Tenancy::withHealth();
 
         $tenants = $this->filterBySearch($tenants, $request->input('search'));
-        $tenants = $this->sortByUsage($tenants, $request->input('sort'));
+        $tenants = $this->sortBy($tenants, $request->input('sort'));
 
         return view('snawbar-tenancy::index', [
             'tenants' => $this->paginate($tenants, $request),
@@ -58,15 +58,13 @@ class TenancyController extends Controller
         ));
     }
 
-    private function sortByUsage(Collection $tenants, ?string $sort): Collection
+    private function sortBy(Collection $tenants, ?string $sort): Collection
     {
-        return match ($sort) {
-            'usage' => $tenants->sortByDesc(fn ($tenant) => collect($tenant->health)
-                ->filter(fn ($value) => is_numeric($value))
-                ->sum()
-            ),
-            default => $tenants,
-        };
+        if (blank($sort)) {
+            return $tenants;
+        }
+
+        return $tenants->sortByDesc(sprintf('health.%s', $sort))->values();
     }
 
     private function paginate(Collection $collection, Request $request, int $perPage = 15): LengthAwarePaginator

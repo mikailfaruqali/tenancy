@@ -7,25 +7,25 @@ use Illuminate\Support\Facades\DB;
 
 class TenancyHealth
 {
-    protected static $using;
+    private static $using;
 
     public static function using(callable $callback): void
     {
-        static::$using = $callback;
+        self::$using = $callback;
     }
 
     public static function check(object $tenant): array
     {
-        if (blank(static::$using)) {
+        if (blank(self::$using)) {
             return [
                 'status' => 'unknown',
             ];
         }
 
-        return call_user_func(static::$using, static::createConnection($tenant));
+        return call_user_func(self::$using, self::createConnection($tenant));
     }
 
-    protected static function createConnection(object $tenant): Connection
+    private static function createConnection(object $tenant): Connection
     {
         return DB::build([
             'driver' => 'mysql',

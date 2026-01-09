@@ -97,4 +97,32 @@ return [
         'username' => env('TENANCY_DB_USERNAME', 'root'),
         'password' => env('TENANCY_DB_PASSWORD', ''),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Health Check Sort Options
+    |--------------------------------------------------------------------------
+    |
+    | Define which columns are available for sorting tenants in the UI.
+    | Keys are used as option values, labels are displayed in the select.
+    |
+    | Built-in options:
+    |   'name' => sorts by tenant subdomain
+    |
+    | Health metrics must match keys returned by your Tenancy::healthUsing() callback.
+    |
+    | Example: If your health callback returns:
+    |   ['journals' => 1000, 'invoices' => 500, 'last_activity' => '2024-06-15']
+    |
+    | You could define:
+    |   'name' => 'Name',
+    |   'journals' => 'Most Journals',
+    |   'invoices' => 'Most Invoices',
+    |   'last_activity' => 'Recent Activity',
+    |
+    */
+
+    'health_sort_options' => [
+
+    ],
 ];
