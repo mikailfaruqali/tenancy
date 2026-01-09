@@ -3,97 +3,115 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Not Available</title>
+    <title>Not Found</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
-        :root {
-            --bg: #e5e7eb;
-            --card: #e2e8f0;
-            --text: #020617;
-            --muted: #334155;
-            --border: #cbd5e1;
-            --accent: #1e293b;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
         }
 
         body {
             min-height: 100vh;
-            background: radial-gradient(circle at top, #c7d2fe, #e5e7eb 65%);
-            display: grid;
-            place-items: center;
-            color: var(--text);
+            background: #f1f5f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            padding: 1.5rem;
         }
 
-        .card {
-            background: var(--card);
-            border-radius: 14px;
-            padding: 2.75rem 3rem;
-            max-width: 420px;
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            text-align: center;
-            box-shadow:
-                0 20px 40px rgba(15, 23, 42, .22),
-                inset 0 1px 0 rgba(255, 255, 255, .6);
+            height: 100%;
+            background:
+                radial-gradient(circle at 30% 20%, rgba(239, 68, 68, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(249, 115, 22, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
         }
 
-        .icon {
-            width: 56px;
-            height: 56px;
-            margin: 0 auto 1.5rem;
-            border-radius: 50%;
-            background: rgba(30, 41, 59, .12);
-            display: grid;
-            place-items: center;
-            color: var(--accent);
-            font-size: 30px;
-            font-weight: 600;
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 1;
         }
 
         h1 {
-            font-size: 1.45rem;
-            margin-bottom: .75rem;
-            font-weight: 600;
+            font-size: 1.625rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.03em;
         }
 
         p {
-            color: var(--muted);
-            font-size: .95rem;
+            color: #64748b;
+            font-size: 0.875rem;
             line-height: 1.6;
+            max-width: 320px;
+            margin: 0 auto;
         }
 
         .domain {
-            margin-top: 1.4rem;
-            font-size: .85rem;
-            color: #020617;
-            background: #cbd5e1;
-            border-radius: 8px;
-            padding: .55rem .9rem;
-            display: inline-block;
-            letter-spacing: .35px;
+            margin-top: 2rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #475569;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.625rem;
+            box-shadow:
+                0 1px 3px rgba(0, 0, 0, 0.04),
+                0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+        }
+
+        .error-code {
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #94a3b8;
+            letter-spacing: 0.05em;
         }
     </style>
 </head>
 
 <body>
-    <div class="card">
-        <div class="icon">!</div>
+    <div class="background"></div>
 
-        <h1>Not Ready Yet</h1>
+    <div class="container">
+        <h1>Workspace Not Found</h1>
 
-        <p>
-            This page hasn’t been created yet or is currently unavailable.
-        </p>
+        <p>The requested workspace doesn't exist or has been removed.</p>
 
         <div class="domain">
+            <span class="status-dot"></span>
             {{ $subdomain }}
         </div>
+
+        <div class="error-code">ERROR 404</div>
     </div>
 </body>
 
