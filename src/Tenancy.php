@@ -93,7 +93,7 @@ class Tenancy
         return $this->tenancyRepository->exists($subdomain);
     }
 
-    public function doesNotExist(string $subdomain): bool
+    public function doesntExist(string $subdomain): bool
     {
         return ! $this->exists($subdomain);
     }
