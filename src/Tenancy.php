@@ -93,6 +93,11 @@ class Tenancy
         return $this->tenancyRepository->exists($subdomain);
     }
 
+    public function doesNotExist(string $subdomain): bool
+    {
+        return ! $this->exists($subdomain);
+    }
+
     public function connectWithSubdomain(string $subdomain): void
     {
         $tenant = $this->tenancyRepository->findOrFail($subdomain);
