@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static object|null find(string $subdomain)
  * @method static object findOrFail(string $subdomain)
  * @method static bool exists(string $subdomain)
+ * @method static bool doesNotExist(string $subdomain)
  * @method static array health(object $tenant)
  *
  * Connection & migration
