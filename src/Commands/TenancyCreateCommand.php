@@ -21,7 +21,7 @@ class TenancyCreateCommand extends Command
         );
 
         $rootPassword = password(
-            label: 'MySQL Root Password?',
+            label: 'MySQL Root Password ?',
             required: TRUE,
         );
 
