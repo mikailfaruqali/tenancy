@@ -2,6 +2,10 @@
 
 function formatHealthValue($value): ?string
 {
+    if (blank($value)) {
+        return NULL;
+    }
+
     if (is_numeric($value)) {
         return number_format($value);
     }
@@ -10,5 +14,5 @@ function formatHealthValue($value): ?string
         return date('Y-m-d', strtotime((string) $value));
     }
 
-    return $value;
+    return (string) $value;
 }
