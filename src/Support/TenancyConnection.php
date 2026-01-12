@@ -76,29 +76,31 @@ class TenancyConnection
 
         $passwordFlag = match ($password) {
             NULL, '' => '',
-            default => sprintf('-p%s', $password),
+            default => sprintf("-p'%s'", $password),
         };
 
-        $dumpArguments = [
-            $mysqldump,
+        $wrapPath = fn ($path) => match (PHP_OS_FAMILY) {
+            'Windows' => "\"{$path}\"",
+            default => $path,
+        };
+
+        $dumpCommand = sprintf('%s -h%s -P%s -u%s %s --single-transaction --quick %s',
+            $wrapPath($mysqldump),
             $config['host'],
             $config['port'],
             $config['username'],
             $passwordFlag,
             $fromTenant->database->database,
-        ];
+        );
 
-        $importArguments = [
-            $mysql,
+        $importCommand = sprintf('%s -h%s -P%s -u%s %s %s',
+            $wrapPath($mysql),
             $config['host'],
             $config['port'],
             $config['username'],
             $passwordFlag,
             $toTenant->database->database,
-        ];
-
-        $dumpCommand = sprintf('"%s" -h%s -P%s -u%s %s --single-transaction --quick %s', ...$dumpArguments);
-        $importCommand = sprintf('"%s" -h%s -P%s -u%s %s %s', ...$importArguments);
+        );
 
         $processResult = Process::pipe([$dumpCommand, $importCommand]);
 
