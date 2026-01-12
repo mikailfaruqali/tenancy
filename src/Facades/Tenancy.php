@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Facade;
  * Runtime API
  * -----------
  * @method static Collection all()
+ * @method static object|null current()
  * @method static object|null find(string $subdomain)
  * @method static object findOrFail(string $subdomain)
  * @method static bool exists(string $subdomain)

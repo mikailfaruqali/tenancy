@@ -78,6 +78,11 @@ class Tenancy
         return $this->tenancyRepository->all();
     }
 
+    public function current(): ?object
+    {
+        return $this->tenancyRepository->findOrFail(request()->getHost());
+    }
+
     public function find(string $subdomain): ?object
     {
         return $this->tenancyRepository->find($subdomain);
