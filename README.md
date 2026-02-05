@@ -1,867 +1,281 @@
-# 🏢 Snawbar Tenancy - Laravel Multi-Tenancy Package
+# Tenancy for Laravel
+
+Fast, file-based multi-tenancy for Laravel. Each tenant gets its own MySQL database, identified by subdomain — no extra tables, no Eloquent models, just a single JSON file.
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/mikailfaruqali/tenancy.svg?style=flat-square)](https://packagist.org/packages/mikailfaruqali/tenancy)
 [![Total Downloads](https://img.shields.io/packagist/dt/mikailfaruqali/tenancy.svg?style=flat-square)](https://packagist.org/packages/mikailfaruqali/tenancy)
 [![License](https://img.shields.io/packagist/l/mikailfaruqali/tenancy.svg?style=flat-square)](https://packagist.org/packages/mikailfaruqali/tenancy)
 
-A powerful yet simple Laravel package for **database-per-tenant** multi-tenancy with subdomain-based tenant identification. Fast file-based tenant registry, automatic database isolation, and dynamic connection switching.
+---
 
-## 📖 Table of Contents
+## Features
 
-- [Features](#-features)
-- [Quick Start](#-quick-start)
-- [Requirements](#-requirements)
-- [Installation](#-installation)
-- [Configuration](#️-configuration)
-- [Basic Setup](#-basic-setup)
-- [Usage](#-usage)
-  - [Creating Tenants](#creating-tenants)
-  - [Deleting Tenants](#deleting-tenants)
-  - [Upgrading Tenants](#upgrading-tenants)
-  - [Finding Tenants](#finding-tenants)
-  - [Health Monitoring](#health-monitoring)
-- [Helper Functions](#️-helper-functions)
-- [Artisan Commands](#-artisan-commands)
-- [Advanced Configuration](#-advanced-configuration)
-- [Management Interface](#-management-interface)
-- [Middleware](#️-middleware)
-- [Exception Handling](#-exception-handling)
-- [API Reference](#-api-reference)
-- [Common Patterns](#-common-patterns)
-- [Security Considerations](#-security-considerations)
-- [Troubleshooting](#-troubleshooting)
-- [Contributing](#-contributing)
-- [License](#-license)
+- **Database-per-tenant** — fully isolated MySQL database and user for every tenant
+- **Subdomain routing** — tenants resolved automatically via `acme.yourapp.com`
+- **File-based registry** — all tenants stored in a single `tenants.json`; zero migrations
+- **Dynamic connection switching** — swap the active DB connection at runtime
+- **Auto migrations** — run Laravel migrations on each tenant DB at creation or upgrade
+- **Database cloning** — pipe `mysqldump` from one tenant to another in one call
+- **Health checks** — attach custom metrics (row counts, last activity, etc.) per tenant
+- **Management UI** — built-in Blade views to list, search, sort, and create tenants
+- **Artisan commands** — `tenancy:create`, `tenancy:delete`, `tenancy:upgrade`
+- **SQL upgrade scripts** — drop an `upgrade.sql` and run it across every tenant
+- **Scoped file storage** — auto-scope a filesystem disk to the current tenant
+- **Lifecycle hooks** — tap into connect, migrate, upgrade, and delete events
+- **Tenant asset helper** — `tenancy_asset()` for per-tenant public file URLs
+- **Publishable config & views** — customize everything
 
-## ✨ Features
+---
 
-- 🗄️ **Database-Per-Tenant** - Complete database isolation for each tenant
-- 🌐 **Subdomain-Based** - Automatic tenant identification via subdomains
-- ⚡ **Fast File Storage** - JSON-based tenant registry for quick access
-- 🔐 **Secure Isolation** - Separate MySQL users and databases per tenant
-- 🎨 **Management Interface** - Web UI for tenant management with health monitoring
-- 🔍 **Health Monitoring** - Built-in tenant health checks with customization
-- 🛠️ **Artisan Commands** - CLI tools for creating, deleting, and upgrading tenants
-- 🎯 **Middleware Support** - Automatic tenant detection and connection switching
-- 🔧 **Highly Customizable** - Hooks for custom connection, migration, and health check logic
+## Requirements
 
-## 🚀 Quick Start
+- PHP 8.2+
+- Laravel 11+
+- MySQL with `CREATE DATABASE` / `CREATE USER` / `GRANT` privileges
 
-```bash
-# Install the package
-composer require mikailfaruqali/tenancy
+---
 
-# Publish configuration
-php artisan vendor:publish --tag=snawbar-tenancy-config
-
-# Create storage directory
-mkdir storage/tenancy
-
-# Configure .env
-echo "TENANCY_ENABLED=true" >> .env
-echo "TENANCY_DOMAIN=yourdomain.com" >> .env
-echo "TENANCY_MAIN_DOMAIN=yourdomain.com" >> .env
-echo "TENANCY_DB_USERNAME=root" >> .env
-echo "TENANCY_DB_PASSWORD=your_password" >> .env
-
-# Setup connection in AppServiceProvider (see Basic Setup section)
-# Create your first tenant
-php artisan tenancy:create
-```
-
-## 📋 Requirements
-
-- PHP 8.2 or higher
-- Laravel 11.0 or higher
-- MySQL database
-- MySQL user with `CREATE DATABASE`, `CREATE USER`, and `GRANT` privileges
-
-## 📦 Installation
-
-### 1. Install via Composer
+## Installation
 
 ```bash
 composer require mikailfaruqali/tenancy
 ```
 
-### 2. Publish Configuration
+Publish the config:
 
 ```bash
 php artisan vendor:publish --tag=snawbar-tenancy-config
 ```
 
-This will create `config/snawbar-tenancy.php`.
-
-### 3. Publish Views (Optional)
+Optionally publish the views:
 
 ```bash
 php artisan vendor:publish --tag=snawbar-tenancy-views
 ```
 
-This will publish views to `resources/views/vendor/snawbar-tenancy/`.
+---
 
-### 4. Configure Environment
+## Configuration
 
-Add to your `.env` file:
+Add to your `.env`:
 
-```env
-# Enable/disable multi-tenancy
+```dotenv
 TENANCY_ENABLED=true
-
-# Main domain for tenant subdomains
-TENANCY_DOMAIN=yourdomain.com
-
-# Main domain (where admin panel is accessible)
-TENANCY_MAIN_DOMAIN=yourdomain.com
-
-# MySQL user that can access all tenant databases (for admin operations)
-TENANCY_MAIN_DOMAIN_OWNER=root
-
-# MySQL root credentials (for creating/deleting databases)
+TENANCY_DOMAIN=yourapp.com
+TENANCY_MAIN_DOMAIN=yourapp.com
 TENANCY_DB_HOST=127.0.0.1
 TENANCY_DB_PORT=3306
 TENANCY_DB_USERNAME=root
-TENANCY_DB_PASSWORD=your_root_password
+TENANCY_DB_PASSWORD=secret
 ```
 
-### 5. Create Storage Directory
+See the full config in `config/snawbar-tenancy.php` after publishing.
 
-The package stores tenant information in a JSON file. Create the directory:
+---
 
-```bash
-mkdir -p storage/tenancy
-```
+## Setup
 
-Or create it manually on Windows:
-
-```bash
-mkdir storage\tenancy
-```
-
-The package will create `storage/tenancy/tenants.json` automatically when you create your first tenant. Ensure this directory has write permissions.
-
-**Important:** Keep this file backed up as it contains all tenant database credentials. You may also want to add it to `.gitignore` if it contains sensitive information, though typically it should be version controlled in secure environments.
-
-## ⚙️ Configuration
-
-### Main Configuration (`config/snawbar-tenancy.php`)
+Register connection and migration logic in your `AppServiceProvider`:
 
 ```php
-<?php
-
-return [
-    // Enable or disable multi-tenancy
-    'enabled' => env('TENANCY_ENABLED', false),
-
-    // Domain for tenant subdomains (tenant1.yourdomain.com)
-    'domain' => env('TENANCY_DOMAIN', 'localhost'),
-
-    // Main domain where admin panel is accessible
-    'main_domain' => env('TENANCY_MAIN_DOMAIN'),
-
-    // MySQL user with access to all tenant databases
-    'main_domain_owner' => env('TENANCY_MAIN_DOMAIN_OWNER', 'root'),
-
-    // Path to tenants.json file
-    'storage_path' => storage_path('tenancy/tenants.json'),
-
-    // Path to upgrade SQL file
-    'upgrade_sql_path' => storage_path('tenancy/upgrade.sql'),
-
-    // Database configuration for tenant management
-    'database' => [
-        'driver' => 'mysql',
-        'host' => env('TENANCY_DB_HOST', '127.0.0.1'),
-        'port' => env('TENANCY_DB_PORT', '3306'),
-        'username' => env('TENANCY_DB_USERNAME', 'root'),
-        'password' => env('TENANCY_DB_PASSWORD', ''),
-    ],
-
-    // Sort options for the management UI
-    // These correspond to keys in your health check callback response
-    'health_sort_options' => [
-        // Example: 'journals' => 'Most Journals',
-        // Example: 'invoices' => 'Most Invoices',
-    ],
-];
-```
-
-## 🚀 Basic Setup
-
-### 1. Register Service Provider
-
-The service provider is auto-discovered by Laravel. It will automatically register:
-- Configuration files
-- Routes
-- Views
-- Artisan commands (tenancy:create, tenancy:delete, tenancy:upgrade)
-- Helper functions
-
-### 2. Configure Connection Handler
-
-In your `AppServiceProvider` or a dedicated service provider:
-
-```php
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Snawbar\Tenancy\Facades\Tenancy;
 
 public function boot(): void
 {
-    // Define how to connect to a tenant database
-    Tenancy::connectUsing(function ($credentials) {
+    // How to switch to a tenant database
+    Tenancy::connectUsing(function (object $credentials) {
         config([
-            'database.connections.tenant' => [
-                'driver' => 'mysql',
-                'host' => config('database.connections.mysql.host'),
-                'port' => config('database.connections.mysql.port'),
-                'database' => $credentials->database,
-                'username' => $credentials->username,
-                'password' => $credentials->password,
-                'charset' => 'utf8mb4',
-                'collation' => 'utf8mb4_unicode_ci',
-            ],
+            'database.connections.mysql.database' => $credentials->database,
+            'database.connections.mysql.username' => $credentials->username,
+            'database.connections.mysql.password' => $credentials->password,
         ]);
 
-        DB::setDefaultConnection('tenant');
-        DB::reconnect('tenant');
+        DB::purge('mysql');
+        DB::reconnect('mysql');
+    });
+
+    // How to run migrations on a tenant database
+    Tenancy::migrateUsing(function ($command = null) {
+        Artisan::call('migrate', ['--force' => true], $command?->getOutput());
     });
 }
 ```
 
-### 3. Configure Migration Handler
+### Middleware
 
-```php
-Tenancy::migrateUsing(function ($command = null) {
-    $command?->call('migrate', [
-        '--database' => 'tenant',
-        '--force' => true,
-    ]);
-});
-```
-
-### 4. Register Middleware
-
-In `bootstrap/app.php` (Laravel 11):
+Apply `InitializeTenancy` to tenant-facing routes — it detects the subdomain and switches the connection automatically:
 
 ```php
 use Snawbar\Tenancy\Middleware\InitializeTenancy;
-use Snawbar\Tenancy\Middleware\EnsureMainTenancy;
 
-->withMiddleware(function (Middleware $middleware) {
-    // Apply to web routes for automatic tenant detection
-    $middleware->web(append: [
-        InitializeTenancy::class,
-    ]);
-    
-    // Apply to admin routes to ensure they only work on main domain
-    $middleware->alias([
-        'main-tenancy' => EnsureMainTenancy::class,
-    ]);
-})
+Route::middleware([InitializeTenancy::class])->group(function () {
+    Route::get('/dashboard', DashboardController::class);
+});
 ```
 
-Or in `app/Http/Kernel.php` (Laravel 10):
+`EnsureMainTenancy` protects admin-only routes (the built-in UI uses it):
 
 ```php
-protected $middlewareGroups = [
-    'web' => [
-        // ... other middleware
-        \Snawbar\Tenancy\Middleware\InitializeTenancy::class,
-    ],
-];
+use Snawbar\Tenancy\Middleware\EnsureMainTenancy;
 
-protected $middlewareAliases = [
-    // ... other aliases
-    'main-tenancy' => \Snawbar\Tenancy\Middleware\EnsureMainTenancy::class,
-];
+Route::middleware([EnsureMainTenancy::class])->group(function () {
+    Route::get('/admin', AdminController::class);
+});
 ```
 
-## 🎯 Usage
+---
 
-### Creating Tenants
+## Artisan Commands
 
-#### Via Artisan Command
+| Command | Description |
+|---|---|
+| `php artisan tenancy:create` | Create a tenant — prompts for name & root password, creates DB + user, runs migrations |
+| `php artisan tenancy:delete` | Search & select a tenant, drop its DB and user |
+| `php artisan tenancy:upgrade` | Execute `storage/tenancy/upgrade.sql` on every tenant, then delete the file |
 
-```bash
-php artisan tenancy:create
-```
+---
 
-You'll be prompted for:
-- Tenant name (alphanumeric and hyphens only, will be sanitized to database-safe format)
-- MySQL root password
-
-The command will:
-1. Create a new MySQL database (e.g., `company_name_db`)
-2. Create a dedicated MySQL user for the tenant (e.g., `company_name_usr`)
-3. Grant privileges to the tenant user and main domain owner
-4. Run migrations on the tenant database
-5. Store tenant information in `storage/tenancy/tenants.json`
-
-**Note:** Tenant names are automatically sanitized:
-- Converted to lowercase
-- Non-alphanumeric characters replaced with underscores
-- Truncated to 16 characters for database compatibility
-
-#### Via Code
+## Programmatic API
 
 ```php
 use Snawbar\Tenancy\Facades\Tenancy;
 
-// Create tenant
-$tenant = Tenancy::create('company-name', 'mysql_root_password');
-
-// The tenant object contains:
-// - subdomain: "company-name.yourdomain.com"
-// - database: { database, username, password }
-
-// Run migrations
-Tenancy::migrate($tenant);
-```
-
-#### Via Management Interface
-
-Access the web interface at your main domain:
-- `https://yourdomain.com/snawbar-tenancy/list-view` - List all tenants
-- `https://yourdomain.com/snawbar-tenancy/create-view` - Create new tenant
-
-### Deleting Tenants
-
-#### Via Artisan Command
-
-```bash
-php artisan tenancy:delete
-```
-
-Select a tenant from the list and provide the MySQL root password.
-
-#### Via Code
-
-```php
-$tenant = Tenancy::findOrFail('company-name.yourdomain.com');
-Tenancy::delete($tenant, 'mysql_root_password');
-```
-
-### Upgrading Tenants
-
-When you need to run SQL updates across all tenants:
-
-1. Create `storage/tenancy/upgrade.sql` with your SQL:
-```sql
-ALTER TABLE users ADD COLUMN phone VARCHAR(20);
-```
-
-2. Run the upgrade command:
-```bash
-php artisan tenancy:upgrade
-```
-
-This will:
-- Connect to each tenant database
-- Execute the SQL file
-- Run any custom upgrade logic
-- Delete the SQL file after completion
-
-### Finding Tenants
-
-```php
-// Get all tenants
+// All tenants
 $tenants = Tenancy::all();
 
-// Find specific tenant
-$tenant = Tenancy::find('company.yourdomain.com');
+// Find
+$tenant = Tenancy::find('acme.yourapp.com');
+$tenant = Tenancy::findOrFail('acme.yourapp.com');
 
-// Find or throw exception
-$tenant = Tenancy::findOrFail('company.yourdomain.com');
+// Current tenant (from request host)
+$tenant = Tenancy::current();
 
-// Check if tenant exists
-if (Tenancy::exists('company.yourdomain.com')) {
-    // ...
-}
+// Existence
+Tenancy::exists('acme.yourapp.com');   // bool
+Tenancy::doesntExist('acme.yourapp.com');
+
+// Create & migrate
+$tenant = Tenancy::create('acme', $rootPassword);
+Tenancy::migrate($tenant);
+
+// Clone one tenant's data into another
+Tenancy::clone('source.yourapp.com', 'target.yourapp.com', $rootPassword);
+
+// Delete tenant + database
+Tenancy::delete($tenant, $rootPassword);
+
+// Manual connection switching
+Tenancy::connectWithSubdomain('acme.yourapp.com');
+Tenancy::connectWithCredentials($credentials);
 ```
 
-### Manual Connection Switching
+---
 
-```php
-// Connect by subdomain
-Tenancy::connectWithSubdomain('company.yourdomain.com');
+## Health Checks
 
-// Connect with credentials object
-Tenancy::connectWithCredentials($tenant->database);
-```
-
-### Health Monitoring
-
-```php
-// Check single tenant health
-$health = Tenancy::health($tenant);
-// Returns: ['status' => 'active', 'record_count' => 1250, 'table_count' => 15]
-
-// Get all tenants with health data
-$tenants = Tenancy::withHealth();
-```
-
-## 🛠️ Helper Functions
-
-The package includes a helper function for formatting health check values in views:
-
-```php
-formatHealthValue($value): string
-```
-
-This function formats health values appropriately:
-- Numbers: Formatted with commas (e.g., 1000 → 1,000)
-- Dates: Formatted as Y-m-d (e.g., 2026-01-10)
-- Other values: Returned as-is
-
-Used in the management interface to display health metrics cleanly.
-
-## 🎮 Artisan Commands
-
-The package provides three Artisan commands for tenant management:
-
-### tenancy:create
-
-Creates a new tenant with database, user, and runs migrations.
-
-```bash
-php artisan tenancy:create
-```
-
-**Interactive prompts:**
-- Tenant name (validated: lowercase letters, numbers, hyphens)
-- MySQL root password
-
-**What it does:**
-1. Validates tenant name format
-2. Creates MySQL database and user
-3. Grants appropriate privileges
-4. Runs migrations on tenant database
-5. Saves tenant to registry
-
-### tenancy:delete
-
-Deletes an existing tenant and all associated resources.
-
-```bash
-php artisan tenancy:delete
-```
-
-**Interactive prompts:**
-- Select tenant from searchable list
-- MySQL root password
-
-**What it does:**
-1. Drops the tenant database
-2. Drops the tenant MySQL user
-3. Removes tenant from registry
-4. Executes any `afterDeleteUsing()` hooks
-
-### tenancy:upgrade
-
-Runs SQL updates and custom logic across all tenants.
-
-```bash
-php artisan tenancy:upgrade
-```
-
-**Usage:**
-1. Create `storage/tenancy/upgrade.sql` with your SQL statements
-2. Run the command
-3. The SQL is executed on each tenant database
-4. Custom `afterUpgradeUsing()` hooks are executed
-5. The upgrade.sql file is automatically deleted
-
-**Example upgrade.sql:**
-```sql
-ALTER TABLE users ADD COLUMN phone VARCHAR(20);
-CREATE INDEX idx_users_email ON users(email);
-```
-
-## 🔧 Advanced Configuration
-
-All configuration hooks should be registered in a service provider's `boot()` method, typically in `AppServiceProvider`.
-
-### Custom Connection Logic
-
-Define how to connect to tenant databases. This is **required** for the package to function.
-
-```php
-Tenancy::connectUsing(function ($credentials) {
-    // Your custom connection logic
-    // e.g., connect to different database servers based on tenant
-    config([
-        'database.connections.tenant' => [
-            'driver' => 'mysql',
-            'host' => config('database.connections.mysql.host'),
-            'port' => config('database.connections.mysql.port'),
-            'database' => $credentials->database,
-            'username' => $credentials->username,
-            'password' => $credentials->password,
-        ],
-    ]);
-    
-    DB::setDefaultConnection('tenant');
-    DB::reconnect('tenant');
-});
-```
-
-### After Connection Hook
-
-```php
-Tenancy::afterConnectUsing(function ($request) {
-    // Run after tenant connection is established
-    // e.g., set up tenant-specific configuration
-    Log::info('Connected to tenant: ' . $request->getHost());
-});
-```
-
-### Custom Health Checks
+Define custom metrics — they appear as badges in the management UI and can be used for sorting:
 
 ```php
 use Illuminate\Database\Connection;
 
 Tenancy::healthUsing(function (Connection $connection) {
-    // Return custom health metrics
     return [
-        'status' => 'active',
-        'users_count' => $connection->table('users')->count(),
-        'posts_count' => $connection->table('posts')->count(),
-        'last_activity' => $connection->table('activity_logs')->max('created_at'),
+        'users'         => $connection->table('users')->count(),
+        'invoices'      => $connection->table('invoices')->count(),
+        'last_activity' => $connection->table('activity_log')->max('created_at'),
     ];
 });
 ```
 
-**Note:** If you want to make these metrics sortable in the management UI, add them to the `health_sort_options` array in your config file:
+Make them sortable via config:
 
 ```php
 // config/snawbar-tenancy.php
 'health_sort_options' => [
-    'users_count' => 'Most Users',
-    'posts_count' => 'Most Posts',
+    'users'         => 'Most Users',
+    'invoices'      => 'Most Invoices',
     'last_activity' => 'Recent Activity',
 ],
 ```
 
-### After Upgrade Hook
+---
+
+## Lifecycle Hooks
 
 ```php
-Tenancy::afterUpgradeUsing(function ($tenant, $command) {
-    $command->info("Running custom upgrade for {$tenant->subdomain}");
-    // Custom upgrade logic per tenant
+// After a tenant connection is established (runs inside middleware)
+Tenancy::afterConnectUsing(function (Request $request) {
+    // e.g. load tenant settings, set locale
+});
+
+// After each tenant is upgraded via tenancy:upgrade
+Tenancy::afterUpgradeUsing(function (object $tenant, Command $command) {
+    // e.g. seed data, clear cache
+});
+
+// After a tenant is deleted via tenancy:delete
+Tenancy::afterDeleteUsing(function (string $subdomain, Command $command) {
+    // e.g. remove files, send notification
+});
+
+// Customize main-domain validation
+Tenancy::ensureMainTenantUsing(function (Request $request) {
+    return $request->getHost() === 'admin.yourapp.com';
 });
 ```
-
-### After Delete Hook
-
-```php
-Tenancy::afterDeleteUsing(function ($subdomain, $command) {
-    // Cleanup logic after tenant deletion
-    Storage::disk('s3')->deleteDirectory("tenants/{$subdomain}");
-});
-```
-
-### Custom Main Domain Validation
-
-```php
-Tenancy::ensureMainTenantUsing(function ($request) {
-    // Custom logic to determine if request is on main domain
-    return $request->getHost() === 'admin.yourdomain.com';
-});
-```
-
-## 🎨 Management Interface
-
-The package includes a beautiful web interface for managing tenants.
-
-### Routing Setup
-
-The routes are automatically registered with the `main-tenancy` middleware to ensure they're only accessible on the main domain. To add authentication, you can modify the routes in your application by re-registering them:
-
-```php
-// In routes/web.php
-use Snawbar\Tenancy\Controllers\TenancyController;
-use Snawbar\Tenancy\Middleware\EnsureMainTenancy;
-
-Route::middleware(['auth', EnsureMainTenancy::class])
-    ->prefix('snawbar-tenancy')
-    ->name('tenancy.')
-    ->group(function () {
-        Route::get('list-view', [TenancyController::class, 'listView'])->name('list.view');
-        Route::get('create-view', [TenancyController::class, 'createView'])->name('create.view');
-        Route::post('create', [TenancyController::class, 'create'])->name('create');
-    });
-```
-
-### Available Routes
-
-- `GET /snawbar-tenancy/list-view` - List all tenants with health status, search, and sorting
-- `GET /snawbar-tenancy/create-view` - Create new tenant form
-- `POST /snawbar-tenancy/create` - Handle tenant creation
-
-### Features
-
-- 📊 Real-time health monitoring
-- 🔍 Search tenants by subdomain
-- 📈 Sort by database usage or custom health metrics
-- 📄 Pagination support
-- ⚡ Ajax-based tenant creation
-- 🎨 Modern, responsive UI
-
-### Customizing Views
-
-If you want to customize the management interface, publish the views:
-
-```bash
-php artisan vendor:publish --tag=snawbar-tenancy-views
-```
-
-This will publish three Blade views to `resources/views/vendor/snawbar-tenancy/`:
-- `index.blade.php` - List tenants view
-- `create.blade.php` - Create tenant form
-- `404.blade.php` - Tenant not found error page
-
-You can then modify these views to match your application's design.
-
-## �️ Middleware
-
-### InitializeTenancy
-
-Automatically detects tenant from subdomain and switches database connection.
-
-```php
-// Applied to web middleware group
-public function handle(Request $request, Closure $next)
-{
-    if (config('snawbar-tenancy.enabled')) {
-        Tenancy::connectWithSubdomain($request->getHost());
-    }
-    
-    return $next($request);
-}
-```
-
-### EnsureMainTenancy
-
-Ensures routes are only accessible on the main domain (admin panel).
-
-```php
-Route::middleware('main-tenancy')->group(function () {
-    // Only accessible on main domain
-    Route::get('/admin', ...);
-});
-```
-
-## 🎭 Exception Handling
-
-### TenancyNotFound
-
-Thrown when a tenant subdomain doesn't exist. Automatically renders a beautiful 404 page.
-
-```php
-try {
-    $tenant = Tenancy::findOrFail('nonexistent.yourdomain.com');
-} catch (TenancyNotFound $e) {
-    // Handled automatically with custom 404 view
-}
-```
-
-### TenancyAlreadyExists
-
-Thrown when trying to create a tenant that already exists.
-
-```php
-try {
-    Tenancy::create('existing-tenant');
-} catch (TenancyAlreadyExists $e) {
-    // Handle duplicate tenant
-}
-```
-
-### TenancyDatabaseException
-
-Thrown when database operations fail.
-
-```php
-try {
-    Tenancy::create('new-tenant', 'wrong_password');
-} catch (TenancyDatabaseException $e) {
-    Log::error($e->getMessage());
-}
-```
-
-## 📚 API Reference
-
-### Facade Methods
-
-#### Configuration Hooks
-```php
-Tenancy::connectUsing(Closure $callback): void
-Tenancy::migrateUsing(Closure $callback): void
-Tenancy::healthUsing(Closure $callback): void
-Tenancy::ensureMainTenantUsing(Closure $callback): void
-Tenancy::afterConnectUsing(Closure $callback): void
-Tenancy::afterUpgradeUsing(Closure $callback): void
-Tenancy::afterDeleteUsing(Closure $callback): void
-```
-
-#### Runtime API
-```php
-Tenancy::all(): Collection
-Tenancy::find(string $subdomain): ?object
-Tenancy::findOrFail(string $subdomain): object
-Tenancy::exists(string $subdomain): bool
-Tenancy::health(object $tenant): array
-Tenancy::withHealth(): Collection
-```
-
-#### Connection & Migration
-```php
-Tenancy::connectWithSubdomain(string $subdomain): void
-Tenancy::connectWithCredentials(object $credentials): void
-Tenancy::migrate(object $tenant, ?Command $command = null): void
-```
-
-#### Tenant Lifecycle
-```php
-Tenancy::create(string $name, ?string $rootPassword = null): object
-Tenancy::delete(object $tenant, ?string $rootPassword = null): void
-```
-
-### Tenant Object Structure
-
-```php
-{
-    "subdomain": "company.yourdomain.com",
-    "database": {
-        "database": "company_db",
-        "username": "company_usr",
-        "password": "random_16_char_password"
-    }
-}
-```
-
-## 🎯 Common Patterns
-
-### Multi-Database Queries
-
-Get data from all tenants by iterating and connecting to each:
-
-```php
-$allData = Tenancy::all()->map(function ($tenant) {
-    Tenancy::connectWithCredentials($tenant->database);
-    return [
-        'subdomain' => $tenant->subdomain,
-        'users_count' => DB::table('users')->count(),
-        'orders_count' => DB::table('orders')->count(),
-    ];
-});
-```
-
-### Tenant-Specific Configuration
-
-Set configuration based on tenant after connection:
-
-```php
-Tenancy::afterConnectUsing(function ($request) {
-    $tenant = Tenancy::find($request->getHost());
-    
-    if ($tenant) {
-        // Set tenant-specific config
-        config([
-            'app.name' => $tenant->name ?? config('app.name'),
-            'mail.from.name' => $tenant->email ?? config('mail.from.name'),
-        ]);
-    }
-});
-```
-
-### Background Jobs for Tenants
-
-Process background jobs for specific tenants:
-
-```php
-// Dispatch a job for a specific tenant
-dispatch(function () use ($tenant) {
-    Tenancy::connectWithCredentials($tenant->database);
-    
-    // Your tenant-specific job logic
-    User::where('status', 'inactive')->delete();
-})->delay(now()->addHours(1));
-```
-});
-```
-
-## 🔒 Security Considerations
-
-1. **Tenant Isolation**: Each tenant has a dedicated database and MySQL user with access only to their database
-2. **Credential Storage**: Tenant credentials are stored in `storage/tenancy/tenants.json` - ensure proper file permissions
-3. **Root Password**: MySQL root password is only used during tenant creation/deletion, never stored
-4. **Subdomain Validation**: Tenant names are sanitized to alphanumeric and hyphens only
-5. **Main Domain Protection**: Use `EnsureMainTenancy` middleware to protect admin routes
-
-## 🐛 Troubleshooting
-
-### Tenant Not Found
-
-**Issue**: Getting 404 when accessing tenant subdomain
-
-**Solutions**:
-- Ensure DNS wildcard record `*.yourdomain.com` points to your server
-- Check `TENANCY_ENABLED=true` in `.env`
-- Verify tenant exists: `php artisan tinker` → `Tenancy::all()`
-
-### Connection Not Switching
-
-**Issue**: Still connected to main database when accessing tenant
-
-**Solutions**:
-- Verify `connectUsing()` callback is registered in `AppServiceProvider`
-- Ensure `InitializeTenancy` middleware is applied to web routes
-- Check connection is being set: `DB::getDefaultConnection()`
-
-### Migration Fails
-
-**Issue**: Migrations don't run on tenant database
-
-**Solutions**:
-- Verify `migrateUsing()` callback is configured
-- Ensure migrations exist in `database/migrations/`
-- Check MySQL user has proper permissions
-- Run manually: `Tenancy::migrate($tenant)`
-
-### Permission Denied
-
-**Issue**: Cannot create database or user
-
-**Solutions**:
-- Verify MySQL root credentials in `.env`
-- Ensure MySQL user has `CREATE DATABASE`, `CREATE USER`, `GRANT` privileges
-- Test connection: `mysql -u root -p`
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
-
-## 👨‍💻 Author
-
-**Snawbar**
-- Email: alanfaruq85@gmail.com
-- GitHub: [@mikailfaruqali](https://github.com/mikailfaruqali)
-
-## 🙏 Acknowledgments
-
-Built with ❤️ for the Laravel community.
 
 ---
 
-**Need Help?** Open an issue on [GitHub](https://github.com/mikailfaruqali/tenancy/issues)
+## Management UI
+
+The package ships with a clean, responsive panel accessible only from the main domain:
+
+| Route | View |
+|---|---|
+| `GET /snawbar-tenancy/list-view` | List tenants — search, sort, health badges, pagination |
+| `GET /snawbar-tenancy/create-view` | Create a tenant — AJAX form with validation |
+
+A custom 404 page is rendered automatically when a tenant subdomain is not found.
+
+---
+
+## Scoped File Storage
+
+Automatically scope a filesystem disk to the current tenant:
+
+```dotenv
+TENANCY_STORAGE_DISK=tenant_files
+TENANCY_SYMLINK=files
+```
+
+```php
+<img src="{{ tenancy_asset('uploads/logo.png') }}">
+{{-- /files/acme.yourapp.com/uploads/logo.png --}}
+```
+
+---
+
+## Tenant Data Structure
+
+Tenants are persisted in `storage/tenancy/tenants.json`:
+
+```json
+[
+  {
+    "subdomain": "acme.yourapp.com",
+    "database": {
+      "database": "acme",
+      "username": "acme_usr",
+      "password": "auto-generated-16-chars"
+    }
+  }
+]
+```
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.

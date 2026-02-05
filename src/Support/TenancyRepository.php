@@ -59,7 +59,7 @@ class TenancyRepository
 
     private function storagePath(): string
     {
-        return config()->string('snawbar-tenancy.storage_path');
+        return config()->string('snawbar-tenancy.tenants_path');
     }
 
     private function ensureFileExists(): void
