@@ -84,16 +84,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Tenant Storage Path
+    | Tenants Path
     |--------------------------------------------------------------------------
     |
-    | The full path where the tenants.json file will be stored.
-    | This file contains all tenant configurations including database credentials.
-    | Make sure this path is writable and backed up regularly.
+    | The full path to the tenants.json file that contains all tenant
+    | configurations including database credentials. Make sure this
+    | path is writable and backed up regularly.
     |
     */
 
-    'storage_path' => storage_path('tenancy/tenants.json'),
+    'tenants_path' => storage_path('tenancy/tenants.json'),
 
     /*
     |--------------------------------------------------------------------------
