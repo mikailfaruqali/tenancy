@@ -55,6 +55,35 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Storage Disk
+    |--------------------------------------------------------------------------
+    |
+    | The filesystem disk name used for tenant file operations such as
+    | uploads and deletions. This disk must be defined in filesystems.php
+    | with both 'root' and 'url' keys. The disk root and url will be
+    | scoped to the current tenant automatically during each request.
+    |
+    */
+
+    'storage_disk' => NULL,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Symlink
+    |--------------------------------------------------------------------------
+    |
+    | The public directory name that symlinks to the tenant files storage.
+    | This is used to generate URLs for tenant files. Must match the
+    | symlink path defined in filesystems.links configuration.
+    |
+    | Example: 'files' generates URLs like /files/{tenant}/uploads/logo.png
+    |
+    */
+
+    'symlink' => NULL,
+
+    /*
+    |--------------------------------------------------------------------------
     | Tenant Storage Path
     |--------------------------------------------------------------------------
     |

@@ -16,3 +16,12 @@ function formatHealthValue($value): ?string
 
     return (string) $value;
 }
+
+function tenancy_asset(string $path): string
+{
+    return sprintf('/%s/%s/%s',
+        config()->string('snawbar-tenancy.symlink'),
+        request()->getHost(),
+        $path,
+    );
+}
