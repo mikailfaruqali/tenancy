@@ -80,7 +80,7 @@ class TenancyConnection
         };
 
         $wrapPath = fn ($path) => match (PHP_OS_FAMILY) {
-            'Windows' => "\"{$path}\"",
+            'Windows' => sprintf('"%s"', $path),
             default => $path,
         };
 

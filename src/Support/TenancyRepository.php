@@ -15,6 +15,9 @@ class TenancyRepository
     public function __construct()
     {
         $this->path = $this->storagePath();
+
+        $this->ensureFileExists();
+
         $this->tenants = $this->load();
     }
 
@@ -57,6 +60,15 @@ class TenancyRepository
     private function storagePath(): string
     {
         return config()->string('snawbar-tenancy.storage_path');
+    }
+
+    private function ensureFileExists(): void
+    {
+        File::ensureDirectoryExists(dirname($this->path));
+
+        if (! File::exists($this->path)) {
+            File::put($this->path, '[]');
+        }
     }
 
     private function load(): Collection
