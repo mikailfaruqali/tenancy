@@ -157,11 +157,18 @@ class TenancyConnection
 
     private function sanitizeDatabaseName(string $name): string
     {
-        return str($name)
+        $cleanDomain = str(config()->string('snawbar-tenancy.domain'))
             ->lower()
-            ->trim()
-            ->replaceMatches('/[^a-z0-9_]/', '_')
+            ->replaceMatches('/[^a-z0-9]/', '')
+            ->substr(0, 10)
+            ->value();
+
+        $cleanTenant = str($name)
+            ->lower()
+            ->replaceMatches('/[^a-z0-9]/', '')
             ->substr(0, 16)
             ->value();
+
+        return sprintf('%s_%s', $cleanDomain, $cleanTenant);
     }
 }
